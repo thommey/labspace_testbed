@@ -118,6 +118,7 @@ end
 
 setmetatable(Scheduler, { __call = function(_, ...) return Scheduler.new(...) end })
 
+-- TODO: args handling is just a guess
 function Scheduler:add(secs, func, ...)
   local future = os.time() + secs
   local f = {func = func, args = ...}
