@@ -118,10 +118,9 @@ end
 
 setmetatable(Scheduler, { __call = function(_, ...) return Scheduler.new(...) end })
 
--- TODO: args handling is just a guess
 function Scheduler:add(secs, func, ...)
   local future = os.time() + secs
-  local f = {func = func, args = ...}
+  local f = { func = func, args = { ... } }
 
   if not self.tasks[future] then
     self.tasks[future] = {}
@@ -153,7 +152,11 @@ function Scheduler:check()
     if time <= now then
       for _, f in ipairs(funcs) do
         debug("Func call (scheduler): " .. tostring(f.func) .. "/" .. tostring(f.args))
-        f.func(f.args)
+        if (f.args) then
+          f.func(unpack(f.args))
+        else
+          f.func()
+        end
       end
     else
       newtasks[time] = funcs
@@ -176,7 +179,6 @@ function Scheduler.mainloop()
   while 1 do
     Scheduler.allcheck()
     ontick()
-    debug("tick")
     sleep(1)
   end
 end
@@ -268,6 +270,7 @@ f()
 debug("Loaded")
 onload()
 math.randomseed(1)
+
 pub("u1", "#labspace", "!add")
 pub("u2", "#labspace", "!add")
 pub("u3", "#labspace", "!add")
