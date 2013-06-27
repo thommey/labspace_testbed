@@ -189,8 +189,16 @@ function format_from(from)
   return from.nick .. "!" .. from.ident .. "@" .. from.host
 end
 
+function terminate(code)
+  io.flush()
+  os.exit(code)
+end
+
 function out(from, text)
-  text = string.gsub(text, "\002", "[B]")
+  text = string.gsub(text, "\002", "")
+  if string.match(text, "Science wins again:") or string.match(text, "The citizens win this round:") then
+    Schedulers[1]:add(10, terminate(0))
+  end
   debug(format_from(from) .. " -> " .. text)
 end
 
