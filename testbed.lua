@@ -152,11 +152,7 @@ function Scheduler:check()
     if time <= now then
       for _, f in ipairs(funcs) do
         debug("Func call (scheduler): " .. tostring(f.func) .. "/" .. tostring(f.args))
-        if (f.args) then
-          f.func(unpack(f.args))
-        else
-          f.func()
-        end
+        f.func(unpack(f.args))
       end
     else
       newtasks[time] = funcs
