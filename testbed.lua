@@ -271,6 +271,14 @@ function moveon()
   pub("u6", "#labspace", "!status")
 end
 
+-- 5.1 compat code for 5.2
+if not unpack then
+  unpack = table.unpack
+end
+if not table.getn then
+  table.getn = function (t) if not t then return 0 end; return #t end
+end
+
 debug("Loading script")
 local f = loadfile("labspace.lua")
 f()
