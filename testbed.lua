@@ -276,7 +276,7 @@ if not unpack then
   unpack = table.unpack
 end
 if not table.getn then
-  table.getn = function (t) if not t then return 0 end; return #t end
+  table.getn = function (t) return #t end
 end
 
 debug("Loading script")
