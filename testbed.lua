@@ -312,7 +312,7 @@ local f = loadfile("labspace.lua")
 f()
 log("Loaded")
 onload()
-math.randomseed(1)
+math.randomseed(os.time())
 
 print("")
 print("You can now type commands. Dummy channel users: u1..u10.")
