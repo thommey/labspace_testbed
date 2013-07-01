@@ -216,15 +216,16 @@ function docmd(str)
   end
 end
 
+local stdin = socket.tcp()
+stdin:close()
+stdin:setfd(0)
+
 function sleep(n)
-  local stdin = { fd = 0 }
   local s_in, s_out, s_err
   while not s_err do
-    s_in, s_out, s_err = socket.select(stdin, nil, n)
-    if s_in and table.getn(s_in) then
-      for line in io.lines() do
-        docmd(line)
-      end
+    s_in, s_out, s_err = socket.select({ stdin }, nil, n)
+    if s_in and table.getn(s_in) > 0 then
+      docmd(io.read("*line"))
     end
   end
 end
@@ -233,6 +234,7 @@ function Scheduler.mainloop()
   while 1 do
     Scheduler.allcheck()
     ontick()
+--    print("tick")
     sleep(1)
   end
 end
