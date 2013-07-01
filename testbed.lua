@@ -15,6 +15,17 @@ function savetable(path)
 end
 
 -- stub implementations
+
+function irctolower(channel)
+  if string.len(channel) == 0 or channel == "#" then
+    return channel;
+  end
+  channel = string.gsub(channel, "%[", "{")
+  channel = string.gsub(channel, "%]", "}")
+  channel = string.gsub(channel, "|", "\\")
+  return string.lower(channel)
+end
+
 function irc_localregisteruser(nick, ident, host, ...)
   local bot = {}
   bot.nick = nick
