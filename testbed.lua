@@ -1,5 +1,7 @@
 require "socket"
 
+local debugtestbed = 0
+
 -- for now, nick == numeric == .. and all users are valid // TODO
 chanusers = { "u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10" }
 
@@ -26,7 +28,7 @@ function irctolower(channel)
   end
   channel = string.gsub(channel, "%[", "{")
   channel = string.gsub(channel, "%]", "}")
-  channel = string.gsub(channel, "|", "\\")
+  channel = string.gsub(channel, "\\", "|")
   return string.lower(channel)
 end
 
@@ -234,14 +236,20 @@ function Scheduler.mainloop()
   while 1 do
     Scheduler.allcheck()
     ontick()
---    print("tick")
+    debug("tick")
     sleep(1)
   end
 end
 
 -- various debugging utilities
 function debug(text)
-  print(os.date() .. " " .. text)
+  if debugtestbed == 1 then
+    log("DEBUG: " .. text)
+  end
+end
+
+function log(text)
+  print(os.date("(%H:%M.%S)") .. " " .. text)
 end
 
 function format_from(from)
@@ -258,16 +266,16 @@ function out(from, text)
   if string.match(text, "Science wins again:") or string.match(text, "The citizens win this round:") then
     Schedulers[1]:add(10, terminate(0))
   end
-  debug(format_from(from) .. " -> " .. text)
+  log(format_from(from) .. " -> " .. text)
 end
 
 function pub(from, text)
-  debug("<" .. from .. "@" .. HOMECHANNEL .."> " .. text)
+  log("<" .. from .. "@" .. HOMECHANNEL .."> " .. text)
   gamehandler(nil, "irc_onchanmsg", from, HOMECHANNEL, text)
 end
 
 function notc(from, text)
-  debug("-" .. from .. "- " .. text)
+  log("-" .. from .. "- " .. text)
   gamehandler(nil, "irc_onnotice", from, text)
 end
 
@@ -279,10 +287,10 @@ if not table.getn then
   table.getn = function (t) return #t end
 end
 
-debug("Loading script")
+log("Loading script")
 local f = loadfile("labspace.lua")
 f()
-debug("Loaded")
+log("Loaded")
 onload()
 math.randomseed(1)
 
