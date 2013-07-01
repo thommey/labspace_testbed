@@ -286,6 +286,7 @@ debug("Loaded")
 onload()
 math.randomseed(1)
 
+print("")
 print("You can now type commands. Dummy channel users: u1..u10.")
 print("Command: pub <nick> <message here> - channel message (e.g. pub u1 !add)")
 print("Command: notc <nick> <message here> - notice to labspace (e.g. notc u1 kill u2)")
