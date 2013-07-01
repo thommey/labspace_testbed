@@ -189,20 +189,33 @@ end
 
 local cmd = {}
 
-function cmd.pub (tokens)
+function cmd.join(tokens)
+  if table.getn(tokens) ~= 2 or not tonumber(tokens[2]) then
+    print("Usage: join <playercount> - playercount 1..10 for now")
+    return
+  end
+
+  for i = 1,tonumber(tokens[2]) do
+    pub("u" .. i, "!add")
+  end
+end
+
+function cmd.pub(tokens)
   if table.getn(tokens) < 3 then
     print("Usage: pub <from nick> <message goes here ...>")
-  else
-    pub(tokens[2], table.concat(tokens, " ", 3))
+    return
   end
+
+  pub(tokens[2], table.concat(tokens, " ", 3))
 end
 
 function cmd.notc (tokens)
   if table.getn(tokens) < 3 then
     print("Usage: notc <from nick> <message goes here ...>")
-  else
-    notc(tokens[2], table.concat(tokens, " ", 3))
+    return
   end
+
+  notc(tokens[2], table.concat(tokens, " ", 3))
 end
 
 function cmd.exit (tokens)
@@ -213,6 +226,10 @@ cmd.notice = cmd.notc
 
 function docmd(str)
   local tokens = ls_split_message(str)
+
+  if not tokens[1] then
+    return
+  end
 
   if not cmd[tokens[1]] then
     print("Invalid command name: " .. tokens[1])
@@ -301,6 +318,7 @@ print("")
 print("You can now type commands. Dummy channel users: u1..u10.")
 print("Command: pub <nick> <message here> - channel message (e.g. pub u1 !add)")
 print("Command: notc <nick> <message here> - notice to labspace (e.g. notc u1 kill u2)")
+print("Command: join <playercount> - join fake players (to not have to !add everyone)")
 print("Command: exit - terminates simulation")
 print("")
 
