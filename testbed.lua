@@ -1,5 +1,9 @@
+require "socket"
+
 -- for now, nick == numeric == .. and all users are valid // TODO
-chanusers = { "u1", "u2", "u3", "u4", "u5", "u6" }
+chanusers = { "u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10" }
+
+local HOMECHANNEL = "#labspace"
 
 -- TODO: database management
 function basepath()
@@ -178,8 +182,51 @@ function Scheduler.allcheck()
   end
 end
 
+local cmd = {}
+
+function cmd.pub (tokens)
+  if table.getn(tokens) < 3 then
+    print("Usage: pub <from nick> <message goes here ...>")
+  else
+    pub(tokens[2], table.concat(tokens, " ", 3))
+  end
+end
+
+function cmd.notc (tokens)
+  if table.getn(tokens) < 3 then
+    print("Usage: notc <from nick> <message goes here ...>")
+  else
+    notc(tokens[2], table.concat(tokens, " ", 3))
+  end
+end
+
+function cmd.exit (tokens)
+  os.exit(0)
+end
+
+cmd.notice = cmd.notc
+
+function docmd(str)
+  local tokens = ls_split_message(str)
+
+  if not cmd[tokens[1]] then
+    print("Invalid command name: " .. tokens[1])
+  else
+    cmd[tokens[1]](tokens)
+  end
+end
+
 function sleep(n)
-  os.execute("sleep " .. n)
+  local stdin = { fd = 0 }
+  local s_in, s_out, s_err
+  while not s_err do
+    s_in, s_out, s_err = socket.select(stdin, nil, n)
+    if s_in and table.getn(s_in) then
+      for line in io.lines() do
+        docmd(line)
+      end
+    end
+  end
 end
 
 function Scheduler.mainloop()
@@ -212,63 +259,14 @@ function out(from, text)
   debug(format_from(from) .. " -> " .. text)
 end
 
-function pub(from, chan, text)
-  debug("<" .. from .. "@" .. chan .. "> " .. text)
-  gamehandler(nil, "irc_onchanmsg", from, chan, text)
+function pub(from, text)
+  debug("<" .. from .. "@" .. HOMECHANNEL .."> " .. text)
+  gamehandler(nil, "irc_onchanmsg", from, HOMECHANNEL, text)
 end
 
 function notc(from, text)
   debug("-" .. from .. "- " .. text)
   gamehandler(nil, "irc_onnotice", from, text)
-end
-
-function moveon()
-  pub("u6", "#labspace", "!status")
-  notc("u1", "kill u2")
-  notc("u6", "kill u1")
-  sleep(4)
-  notc("u2", "investigate u6")
-  pub("u6", "#labspace", "!status")
-  sleep(4)
-  pub("u2", "#labspace", "u6 is mad says the investigator who is me")
-  pub("u6", "#labspace", "!status")
-  sleep(2)
-  notc("u2", "vote u6")
-  sleep(5)
-  pub("u6", "#labspace", "!status")
-  sleep(5)
-  notc("u3", "vote u6")
-  notc("u4", "vote u6")
-  pub("u6", "#labspace", "!status")
-  notc("u5", "vote u2")
-  sleep(1)
-  pub("u6", "#labspace", "!status")
-  notc("u6", "vote u2")
-  pub("u6", "#labspace", "!status")
-  sleep(3)
-  pub("u6", "#labspace", "!status")
-  notc("u6", "kill u2")
-  pub("u6", "#labspace", "!status")
-  sleep(4)
-  pub("u6", "#labspace", "!status")
-  notc("u2", "investigate u6")
-  sleep(4)
-  pub("u6", "#labspace", "!status")
-  notc("u2", "vote u6")
-  notc("u3", "vote u6")
-  pub("u6", "#labspace", "!status")
-  sleep(1)
-  pub("u6", "#labspace", "!status")
-  notc("u4", "vote u6")
-  pub("u6", "#labspace", "!status")
-  sleep(4)
-  pub("u6", "#labspace", "!status")
-  notc("u5", "vote u2")
-  pub("u6", "#labspace", "!status")
-  notc("u6", "vote u2")
-  pub("u6", "#labspace", "!status")
-  sleep(1)
-  pub("u6", "#labspace", "!status")
 end
 
 -- 5.1 compat code for 5.2
@@ -286,15 +284,11 @@ debug("Loaded")
 onload()
 math.randomseed(1)
 
-pub("u1", "#labspace", "!add")
-pub("u2", "#labspace", "!add")
-pub("u3", "#labspace", "!add")
-pub("u4", "#labspace", "!add")
-pub("u5", "#labspace", "!add")
-pub("u6", "#labspace", "!add")
-pub("u6", "#labspace", "!status")
+print("You can now type commands. Dummy channel users: u1..u10.")
+print("Command: pub <nick> <message here> - channel message (e.g. pub u1 !add)")
+print("Command: notc <nick> <message here> - notice to labspace (e.g. notc u1 kill u2)")
+print("Command: exit - terminates simulation")
+print("")
 
-Schedulers[1]:add(35, moveon)
-local nick = irc_getnickbynumeric("derp")
 Scheduler.mainloop()
 
