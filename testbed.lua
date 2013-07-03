@@ -68,8 +68,7 @@ function mode_iter(t)
 end
 
 function irc_localovmode(bot, chan, modes)
-  local modestr, targets = "", ""
-  local lastplsmns = nil
+  local modestr, targets, lastplsmns, modecount = "", "", nil, 0
 
   for m in mode_iter(modes) do
     if lastplsmns == nil or m.plsmns ~= lastplsmns then
@@ -82,8 +81,15 @@ function irc_localovmode(bot, chan, modes)
     end
     modestr = modestr .. m.mode
     targets = targets .. " " .. m.target
+    modecount = modecount + 1
+    if modecount == 6 then
+      out(bot, "MODE " .. chan .. " " .. modestr .. targets)
+      modestr, targets, lastplsmns, modecount = "", "", nil, 0
+    end
   end
-  out(bot, "MODE " .. chan .. " " .. modestr .. targets)
+  if modestr ~= "" then
+    out(bot, "MODE " .. chan .. " " .. modestr .. targets)
+  end
 end
 
 function irc_localjoin(bot, chan)
@@ -222,6 +228,12 @@ function cmd.exit (tokens)
   os.exit(0)
 end
 
+function cmd.players ()
+  for a,b in pairs(ls_get_players(HOMECHANNEL)) do
+    print(b .. ": " .. ls_get_role(HOMECHANNEL, b) .. " / " .. tostring(ls_get_dead(HOMECHANNEL, b)))
+  end
+end
+
 cmd.notice = cmd.notc
 
 function docmd(str)
@@ -284,7 +296,7 @@ end
 function out(from, text)
   text = string.gsub(text, "\002", "")
   if string.match(text, "Science wins again:") or string.match(text, "The citizens win this round:") then
-    Schedulers[1]:add(10, terminate(0))
+    Schedulers[1]:add(10, terminate, 0)
   end
   log(format_from(from) .. " -> " .. text)
 end
@@ -320,6 +332,7 @@ print("Command: pub <nick> <message here> - channel message (e.g. pub u1 !add)")
 print("Command: notc <nick> <message here> - notice to labspace (e.g. notc u1 kill u2)")
 print("Command: join <playercount> - join fake players (to not have to !add everyone)")
 print("Command: exit - terminates simulation")
+print("Command: players - shows list of players and roles (including dead ones)")
 print("")
 
 Scheduler.mainloop()
