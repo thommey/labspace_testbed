@@ -118,7 +118,7 @@ function nickpusher.numeric(user)
 end
 
 function channelusers_iter(chan, dataselectors)
-  local i, n = 1, table.getn(chanusers)
+  local i, n = 0, table.getn(chanusers)
   return function()
     local o = {}
     i = i + 1
